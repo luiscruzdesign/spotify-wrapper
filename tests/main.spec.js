@@ -1,9 +1,3 @@
-/* eslint-disable no-unused-expressions */
-/* eslint-disable prefer-destructuring */
-/* eslint-disable func-names */
-/* eslint-disable prefer-arrow-callback */
-/* global describe,it */
-/* eslint-env mocha */
 import chai, { expect } from 'chai';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -16,13 +10,8 @@ global.fetch = require('node-fetch');
 import { search, searchAlbums, searchArtists, searchTracks, searchPlaylists } from '../src/main';
 
 describe('Spotify Wrapper', () => {
-  describe('smoke tests', () => {
-    // search (genérico) - + de 1 tipo
-    // searchAlbums
-    // searchArtists
-    // searchTracks
-    // searchPlaylists
 
+  describe('smoke tests', () => {
     it('should exist the search method', () => {
       expect(search).to.exist;
     });
@@ -45,11 +34,12 @@ describe('Spotify Wrapper', () => {
   });
 
   describe('Generic Search', () => {
-
     let fetchedStub;
+    let promise;
 
     beforeEach( () => {
       fetchedStub = sinon.stub(global, 'fetch');
+      promise = fetchedStub.returnsPromise();
     });
 
     afterEach( () => {
@@ -61,12 +51,12 @@ describe('Spotify Wrapper', () => {
       expect(fetchedStub).to.have.been.calledOnce;
     });
 
-    it('should receive the correct url to fetch', () => {
-
+    it('should call fetch with the correct URL', () => {
       context('passing one type', () => {
         const artists = search('Incubus', 'artist');
         expect(fetchedStub).to.have.been
           .calledWith('https://api.spotify.com/v1/search?q=Incubus&type=artist');
+
         const albums = search('Incubus', 'album');
         expect(fetchedStub).to.have.been
           .calledWith('https://api.spotify.com/v1/search?q=Incubus&type=album');
@@ -77,6 +67,13 @@ describe('Spotify Wrapper', () => {
         expect(fetchedStub).to.have.been
           .calledWith('https://api.spotify.com/v1/search?q=Incubus&type=artist,album');
       });
+    });
+
+    it('should return the JSON Data from the Promise', () => {
+      promise.resolves({ body: 'json' });
+      const artists = search('Incubus', 'artist');
+
+      expect(artists.resolveValue).to.be.eql({ body: 'json' });
     });
   });
 });
